@@ -176,3 +176,37 @@ Também aparece na representação de uma **rota padrão**:
 Nesse caso, significa essencialmente:
 
 > "Qualquer destino que não tenha uma rota mais específica."
+
+## IPv4 para SOC N1
+
+Imagine encontrar:
+
+```text
+src_ip= 10.10.20.15
+dest_ip= 45.33.20.10
+```
+
+Podemos interpretar:
+
+```text
+10.10.20.15
+    ↓
+IPv4 privado
+    ↓
+provavelmente dispositivo-recurso externo
+    ↓
+45.33.20.10
+    ↓
+não pertence às faixas privadas
+    ↓
+endereço externo
+```
+
+Agora imagine encontrar:
+
+```text
+src_ip= 192.168.1.10
+dest_ip= 192.168.1.100
+```
+
+Ambos são privados.
