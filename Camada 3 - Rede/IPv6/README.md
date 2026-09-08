@@ -1,212 +1,64 @@
-# IPv4
+# IPv6
 
-O **IPv4 (Internet Protocol version 4)** é uma versão do protocolo IP que utiliza **32 bits** para representar um endereço.
+O **IPv6 (Internet Protocol version 6)** que veio para resolver um problema de limitação do IPv4 pois, como o mesmo tinha 32 bits, ele tinha "apenas" 4,3 bilhões de endereços, sendo insuficiente. Para isso, o IPv6 tem 128 bits, resolvendo o problema dos endereços.
 
-Um endereço IPv4 normalmente é escrito no formato:
+## Diferença escrita e visual
 
-```text
-192.168.1.10
-```
-
-Esses **32 bits** são divididos em **4 octetos**, e cada octeto possui **8 bits**:
-
-```text
-192      .      168      .      1      .      10
-8 bits          8 bits         8 bits        8 bits
-```
-
-Como cada octeto possui 8 bits, seu valor pode variar de **0 a 255**.
-
-Portanto:
-
-```text
-Menor endereço: 0.0.0.0
-Maior endereço: 255.255.255.255
-```
-
-Por isso, um endereço como:
-
-```text
-192.168.1.300
-```
-
-é **inválido**, pois `300` ultrapassa o limite de `255` de um octeto.
-
----
-
-## Rede e Hosts
-
-O IPv4 não serve apenas para identificar um dispositivo.
-
-Um endereço IPv4 possui uma parte que representa a **rede** e outra que representa os **hosts** dentro dessa rede.
-
-Por exemplo:
-
-```text
-192.168.1.10/24
-```
-
-O `/24` indica que **24 bits pertencem à rede**, enquanto os **8 bits restantes pertencem aos hosts**.
-
-```text
-192.168.1. | 10
-   REDE    | HOST
-  24 bits  | 8 bits
-```
-
-Assim, dispositivos como:
+Enquanto o IPv4 pode aparecer assim:
 
 ```text
 192.168.1.10
-192.168.1.20
-192.168.1.30
 ```
 
-podem pertencer à mesma rede:
+O IPv6 pode aparecer assim:
 
 ```text
-192.168.1.0/24
+2001:db8:85a3:0000:0000:8a2e:0370:7334
 ```
 
-Enquanto:
+Diferentemente do IPv4, o IPv6 conta com hexadecimal e utiliza dois pontos e, em vez de 8 bits e 4 octetos, ele tem 16 bits e 8 grupos chamados de **hextetos**.
+
+## Abreviação do IPv6
+
+É muito comum não encontrar o endereço completo, pois ele pode ser abreviado:
+
+Por exemplo, ele sai disso:
 
 ```text
-192.168.2.0/24
+2001:0db8:0000:0000:0000:0000:0000:0001
 ```
 
-representa outra rede.
-
-
-Neste caso, **24 bits são destinados à rede** (`192.168.1.`),
-e os **8 bits restantes são destinados aos hosts**.
-
-### Exemplo
-
-| Endereço IP | Rede | Host |
-|---|---|---|
-| `192.168.1.10` | `192.168.1.` | `10` |
-| `192.168.1.20` | `192.168.1.` | `20` |
-| `192.168.1.30` | `192.168.1.` | `30` |
-
-Todos eles podem estar na **mesma rede**:
-
-> `192.168.1.0/24`
-
-Enquanto:
-
-> `192.168.2.0/24`
-
-representa **outra rede**, pois o endereço da rede mudou de `192.168.1.` para `192.168.2.`.
-
-## IP trabalha sozinho?
-
-Não. Em uma comunicação de rede, o IP trabalha em conjunto com **diversos protocolos**, cada um desempenhando uma função diferente.
-
-Alguns exemplos:
+Para isso:
 
 ```text
-HTTP/HTTPS → comunicação de aplicações
-TCP       → transporte e controle da comunicação
-IP        → endereçamento e encaminhamento dos pacotes
+2001:db8::1
 ```
 
-O **IPv4** é utilizado principalmente para realizar o **endereçamento lógico dos dispositivos** e o **encaminhamento dos pacotes entre redes**.
+Mas a abreviação segue regras específicas:
+
+* Os zeros à esquerda podem ser removidos (```0db8 -> db8```);
+* Sequência de zeros podem ser substituídos por ```::```.
+
+## IPv6 não possui broadcast
+
+Em vez do broadcast, o IPv6 usa usa multicast para se comuniciar com vários dispositivos.
+
+# Endereços IPv6 especiais
+
+Assim como o IPv4, o IPv6 também tem seus endereços especiais:
+
+### **127.0.0.1( IPv6: ::1 )**
+
+Significa loopback, ou seja, a própria máquina.
 
 ---
 
-## IPv4 Especiais
+### **fe80::/10**
 
-Existem alguns endereços e faixas de IPv4 que possuem **funções específicas**.
-
-### `127.0.0.1` — Loopback
-
-É o endereço de **loopback**, utilizado para que um dispositivo se comunique consigo mesmo.
-
-```text
-127.0.0.1
-   ↓
-"Este próprio computador"
-```
-
-É muito utilizado para testes locais de rede e de serviços.
-
-> Exemplo: acessar `127.0.0.1` significa tentar acessar um serviço hospedado no próprio computador.
+Significa **link-local**, são utilizados para comunicação dentro do próprio segmento de rede e são muito comuns no IPv6.
 
 ---
 
-### `169.254.x.x` — Link-local
+### **fc00::/7**
 
-É uma faixa de endereços **link-local**.
-
-Ela pode ser atribuída automaticamente a um dispositivo quando ele **não consegue obter um endereço IPv4 por DHCP**, em determinadas situações.
-
-Exemplo:
-
-```text
-169.254.10.25
-169.254.100.50
-```
-
-Esses endereços são utilizados para comunicação **dentro do segmento de rede local** e não são normalmente roteados pela Internet.
-
----
-
-### `0.0.0.0` — Endereço especial
-
-O significado de `0.0.0.0` depende do contexto em que aparece.
-
-Pode representar, por exemplo:
-
-```text
-"Este host / qualquer endereço"
-```
-
-ou:
-
-```text
-"Todas as interfaces"
-```
-
-Também aparece na representação de uma **rota padrão**:
-
-```text
-0.0.0.0/0
-```
-
-Nesse caso, significa essencialmente:
-
-> "Qualquer destino que não tenha uma rota mais específica."
-
-## IPv4 para SOC N1
-
-Imagine encontrar:
-
-```text
-src_ip= 10.10.20.15
-dest_ip= 45.33.20.10
-```
-
-Podemos interpretar:
-
-```text
-10.10.20.15
-    ↓
-IPv4 privado
-    ↓
-provavelmente dispositivo-recurso externo
-    ↓
-45.33.20.10
-    ↓
-não pertence às faixas privadas
-    ↓
-endereço externo
-```
-
-Agora imagine encontrar:
-
-```text
-src_ip= 192.168.1.10
-dest_ip= 192.168.1.100
-```
-
-Ambos são privados.
+Usados para endereços **Unique Local Address (ULA)**, que são usados em redes privadas/locais
