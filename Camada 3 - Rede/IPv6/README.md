@@ -2,7 +2,7 @@
 
 O **IPv6 (Internet Protocol version 6)** que veio para resolver um problema de limitação do IPv4 pois, como o mesmo tinha 32 bits, ele tinha "apenas" 4,3 bilhões de endereços, sendo insuficiente. Para isso, o IPv6 tem 128 bits, resolvendo o problema dos endereços.
 
-## Diferença escrita e visual
+## 1. IPv4 x IPv6
 
 Enquanto o IPv4 pode aparecer assim:
 
@@ -17,6 +17,13 @@ O IPv6 pode aparecer assim:
 ```
 
 Diferentemente do IPv4, o IPv6 conta com hexadecimal e utiliza dois pontos e, em vez de 8 bits e 4 octetos, ele tem 16 bits e 8 grupos chamados de **hextetos**.
+
+Aqui vai um exemplo geral da diferença entre os dois:
+
+```text
+IPv4 → 32 bits → 4 octetos → decimal → 192.168.1.10 → usa broadcast
+IPv6 → 128 bits → 16 hextetos → hexadecimal → 2001:db8::1 → não usa broadcast, ele usa multicast
+```
 
 ## Abreviação do IPv6
 
@@ -47,7 +54,7 @@ Em vez do broadcast, o IPv6 usa usa multicast para se comuniciar com vários dis
 
 Assim como o IPv4, o IPv6 também tem seus endereços especiais:
 
-### **127.0.0.1( IPv6: ::1 )**
+### **127.0.0.1( IPv6: ```::1``` )**
 
 Significa loopback, ou seja, a própria máquina.
 
@@ -62,3 +69,25 @@ Significa **link-local**, são utilizados para comunicação dentro do próprio 
 ### **fc00::/7**
 
 Usados para endereços **Unique Local Address (ULA)**, que são usados em redes privadas/locais
+
+## IPv4 e IPv6 podem coexistir
+
+Podemos usar as duas versões de IP simultaneamente, isso é chamado de **dual stack**. Em SOC, pode-se encontrar a mesma máquina utilizando IPv4 em uma conexão e IPv6 em outra.
+
+## IPv6 em SOC
+
+Se um alerta aparecer assim:
+
+```text
+src_ip=192.168.1.10
+dest_ip=8.8.8.8
+```
+
+É IPv4. Mas se aparecer assim:
+
+```text
+src_ip=2001:db8:1234::50
+dest_ip=2001:db8:5678::80
+```
+
+É IPv6
