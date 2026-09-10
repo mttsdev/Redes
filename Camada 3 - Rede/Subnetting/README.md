@@ -1,212 +1,78 @@
-# IPv4
+# Subnetting
 
-O **IPv4 (Internet Protocol version 4)** é uma versão do protocolo IP que utiliza **32 bits** para representar um endereço.
+**Subnetting** significa dividir uma rede maior em redes menores.
 
-Um endereço IPv4 normalmente é escrito no formato:
-
-```text
-192.168.1.10
-```
-
-Esses **32 bits** são divididos em **4 octetos**, e cada octeto possui **8 bits**:
-
-```text
-192      .      168      .      1      .      10
-8 bits          8 bits         8 bits        8 bits
-```
-
-Como cada octeto possui 8 bits, seu valor pode variar de **0 a 255**.
-
-Portanto:
-
-```text
-Menor endereço: 0.0.0.0
-Maior endereço: 255.255.255.255
-```
-
-Por isso, um endereço como:
-
-```text
-192.168.1.300
-```
-
-é **inválido**, pois `300` ultrapassa o limite de `255` de um octeto.
-
----
-
-## Rede e Hosts
-
-O IPv4 não serve apenas para identificar um dispositivo.
-
-Um endereço IPv4 possui uma parte que representa a **rede** e outra que representa os **hosts** dentro dessa rede.
-
-Por exemplo:
-
-```text
-192.168.1.10/24
-```
-
-O `/24` indica que **24 bits pertencem à rede**, enquanto os **8 bits restantes pertencem aos hosts**.
-
-```text
-192.168.1. | 10
-   REDE    | HOST
-  24 bits  | 8 bits
-```
-
-Assim, dispositivos como:
-
-```text
-192.168.1.10
-192.168.1.20
-192.168.1.30
-```
-
-podem pertencer à mesma rede:
+Imagine a seguinte rede:
 
 ```text
 192.168.1.0/24
 ```
 
-Enquanto:
+Em vez de deixar todos os dispositivos na mesma rede, podemos dividi-la em várias sub-redes. Por exemplo:
 
 ```text
-192.168.2.0/24
+192.168.1.0/26
+192.168.1.64/26
+192.168.1.128/26
+192.168.1.192/26
 ```
 
-representa outra rede.
+Assim temos 4 sub-redes.
 
+## 1. Por que fazer subnetting?
 
-Neste caso, **24 bits são destinados à rede** (`192.168.1.`),
-e os **8 bits restantes são destinados aos hosts**.
-
-### Exemplo
-
-| Endereço IP | Rede | Host |
-|---|---|---|
-| `192.168.1.10` | `192.168.1.` | `10` |
-| `192.168.1.20` | `192.168.1.` | `20` |
-| `192.168.1.30` | `192.168.1.` | `30` |
-
-Todos eles podem estar na **mesma rede**:
-
-> `192.168.1.0/24`
-
-Enquanto:
-
-> `192.168.2.0/24`
-
-representa **outra rede**, pois o endereço da rede mudou de `192.168.1.` para `192.168.2.`.
-
-## IP trabalha sozinho?
-
-Não. Em uma comunicação de rede, o IP trabalha em conjunto com **diversos protocolos**, cada um desempenhando uma função diferente.
-
-Alguns exemplos:
+Imagine que em uma empresa exista diversos visitantes, pessoas de TI e do RH, podemos dividir a rede assim:
 
 ```text
-HTTP/HTTPS → comunicação de aplicações
-TCP       → transporte e controle da comunicação
-IP        → endereçamento e encaminhamento dos pacotes
+RH: 192.168.1.0/26
+TI: 192.168.1.64/26
+Visitantes: 192.168.1.128/26
 ```
-
-O **IPv4** é utilizado principalmente para realizar o **endereçamento lógico dos dispositivos** e o **encaminhamento dos pacotes entre redes**.
-
----
-
-## IPv4 Especiais
-
-Existem alguns endereços e faixas de IPv4 que possuem **funções específicas**.
-
-### `127.0.0.1` — Loopback
-
-É o endereço de **loopback**, utilizado para que um dispositivo se comunique consigo mesmo.
+Isso permite organizar melhor a rede e controlar o tráfego entre os segmentos.
+Para SOC isso é fundamental pois, ao analisarmos um alerta, podemos descobrir que o tráfego veio de uma sub-rede específica. Exemplo:
 
 ```text
-127.0.0.1
-   ↓
-"Este próprio computador"
+src_ip=192.168.1.70/24
+dest_ip=192.168.1.20/24
 ```
 
-É muito utilizado para testes locais de rede e de serviços.
+Como no src_ip indica que é 192.168.1.70, significa que é de TI.
 
-> Exemplo: acessar `127.0.0.1` significa tentar acessar um serviço hospedado no próprio computador.
+## 2. O que acontece com os hosts?
 
----
+Em uma rede de /24, sabemos que dos 32 bits, 24 são para rede, restando 8 para hosts.
 
-### `169.254.x.x` — Link-local
+Com 8 bits:
+```text
+2^8 = 256 endereços possíveis
+```
+Mas não é por que temos 256 endereços disponíveis que todos serão aplicados aos dispositivo pois, um vai para a rede e outro para broadcast, sendo assim, 254 destinados aos hosts.
 
-É uma faixa de endereços **link-local**.
-
-Ela pode ser atribuída automaticamente a um dispositivo quando ele **não consegue obter um endereço IPv4 por DHCP**, em determinadas situações.
-
-Exemplo:
+Exemplos com outros CIDRs:
 
 ```text
-169.254.10.25
-169.254.100.50
+/26 = 32 - 26 = 6 bits > 2^6 = 64 - 2 = 62 bits aos hosts
+/25 = 32 - 25 = 7 bits > 2^7 = 128 - 2 = 126 bits aos hosts
+/23 = 32 - 23 = 9 bits > 2^9 = 512 - 2 = 510 bits aos hosts
+/22 = 32 - 22 = 10 bits > 2^10 = 1024 - 2 = 1022 bits aos hosts
 ```
 
-Esses endereços são utilizados para comunicação **dentro do segmento de rede local** e não são normalmente roteados pela Internet.
+## 3. Como funciona a distribuição de hosts no prefixo /26
 
----
-
-### `0.0.0.0` — Endereço especial
-
-O significado de `0.0.0.0` depende do contexto em que aparece.
-
-Pode representar, por exemplo:
+Dividindo a rede em /26, temos:
 
 ```text
-"Este host / qualquer endereço"
+192.168.1.0/26
+192.168.1.64/26
+192.168.1.128/26
+192.168.1.192/26
 ```
 
-ou:
+Elas são distribuídas assim:
 
 ```text
-"Todas as interfaces"
+192.168.1.0/26 até 192.168.1.63/26
+192.168.1.64/26 até 192.168.1.127/26
+192.168.1.128/26 até 192.168.1.191/26
+192.168.1.192/26 até 192.168.1.255/26
 ```
-
-Também aparece na representação de uma **rota padrão**:
-
-```text
-0.0.0.0/0
-```
-
-Nesse caso, significa essencialmente:
-
-> "Qualquer destino que não tenha uma rota mais específica."
-
-## IPv4 para SOC N1
-
-Imagine encontrar:
-
-```text
-src_ip= 10.10.20.15
-dest_ip= 45.33.20.10
-```
-
-Podemos interpretar:
-
-```text
-10.10.20.15
-    ↓
-IPv4 privado
-    ↓
-provavelmente dispositivo-recurso externo
-    ↓
-45.33.20.10
-    ↓
-não pertence às faixas privadas
-    ↓
-endereço externo
-```
-
-Agora imagine encontrar:
-
-```text
-src_ip= 192.168.1.10
-dest_ip= 192.168.1.100
-```
-
-Ambos são privados.
