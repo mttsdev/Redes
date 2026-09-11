@@ -76,3 +76,12 @@ Elas são distribuídas assim:
 192.168.1.128/26 até 192.168.1.191/26
 192.168.1.192/26 até 192.168.1.255/26
 ```
+Todos as redes tem a mesma quantia de endereços. Mas lembrando, .0 até .63 **não são destinados apenas aos hosts!**. Ocorre desta forma:
+
+```text
+Rede: 192.168.1.0
+Hosts: 192.168.1.1 até 192.168.1.62
+Broadcast: 192.168.1.63
+```
+De forma mais simples, o primeiro ip de uma sub-rede será para a **rede**, enquanto a última será para o broadcast.
+
