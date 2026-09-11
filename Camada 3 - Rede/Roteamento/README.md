@@ -1,212 +1,70 @@
-# IPv4
+# Roteamento
 
-O **IPv4 (Internet Protocol version 4)** é uma versão do protocolo IP que utiliza **32 bits** para representar um endereço.
+## 1. O que é o roteamento?
 
-Um endereço IPv4 normalmente é escrito no formato:
-
-```text
-192.168.1.10
-```
-
-Esses **32 bits** são divididos em **4 octetos**, e cada octeto possui **8 bits**:
-
-```text
-192      .      168      .      1      .      10
-8 bits          8 bits         8 bits        8 bits
-```
-
-Como cada octeto possui 8 bits, seu valor pode variar de **0 a 255**.
-
-Portanto:
-
-```text
-Menor endereço: 0.0.0.0
-Maior endereço: 255.255.255.255
-```
-
-Por isso, um endereço como:
-
-```text
-192.168.1.300
-```
-
-é **inválido**, pois `300` ultrapassa o limite de `255` de um octeto.
-
----
-
-## Rede e Hosts
-
-O IPv4 não serve apenas para identificar um dispositivo.
-
-Um endereço IPv4 possui uma parte que representa a **rede** e outra que representa os **hosts** dentro dessa rede.
-
-Por exemplo:
-
-```text
-192.168.1.10/24
-```
-
-O `/24` indica que **24 bits pertencem à rede**, enquanto os **8 bits restantes pertencem aos hosts**.
-
-```text
-192.168.1. | 10
-   REDE    | HOST
-  24 bits  | 8 bits
-```
-
-Assim, dispositivos como:
-
-```text
-192.168.1.10
-192.168.1.20
-192.168.1.30
-```
-
-podem pertencer à mesma rede:
-
-```text
-192.168.1.0/24
-```
-
-Enquanto:
-
-```text
-192.168.2.0/24
-```
-
-representa outra rede.
-
-
-Neste caso, **24 bits são destinados à rede** (`192.168.1.`),
-e os **8 bits restantes são destinados aos hosts**.
-
-### Exemplo
-
-| Endereço IP | Rede | Host |
-|---|---|---|
-| `192.168.1.10` | `192.168.1.` | `10` |
-| `192.168.1.20` | `192.168.1.` | `20` |
-| `192.168.1.30` | `192.168.1.` | `30` |
-
-Todos eles podem estar na **mesma rede**:
-
-> `192.168.1.0/24`
-
-Enquanto:
-
-> `192.168.2.0/24`
-
-representa **outra rede**, pois o endereço da rede mudou de `192.168.1.` para `192.168.2.`.
-
-## IP trabalha sozinho?
-
-Não. Em uma comunicação de rede, o IP trabalha em conjunto com **diversos protocolos**, cada um desempenhando uma função diferente.
-
-Alguns exemplos:
-
-```text
-HTTP/HTTPS → comunicação de aplicações
-TCP       → transporte e controle da comunicação
-IP        → endereçamento e encaminhamento dos pacotes
-```
-
-O **IPv4** é utilizado principalmente para realizar o **endereçamento lógico dos dispositivos** e o **encaminhamento dos pacotes entre redes**.
-
----
-
-## IPv4 Especiais
-
-Existem alguns endereços e faixas de IPv4 que possuem **funções específicas**.
-
-### `127.0.0.1` — Loopback
-
-É o endereço de **loopback**, utilizado para que um dispositivo se comunique consigo mesmo.
-
-```text
-127.0.0.1
-   ↓
-"Este próprio computador"
-```
-
-É muito utilizado para testes locais de rede e de serviços.
-
-> Exemplo: acessar `127.0.0.1` significa tentar acessar um serviço hospedado no próprio computador.
-
----
-
-### `169.254.x.x` — Link-local
-
-É uma faixa de endereços **link-local**.
-
-Ela pode ser atribuída automaticamente a um dispositivo quando ele **não consegue obter um endereço IPv4 por DHCP**, em determinadas situações.
+Roteamento vem logo depois que o pacote passa pelo gateway. Ele é o processo de decidir por qual caminho o pacote deve seguir para chegar ao destino.
 
 Exemplo:
 
 ```text
-169.254.10.25
-169.254.100.50
+PC A
+192.168.1.10
+   |
+   v
+Gateway
+192.168.1.1
+   |
+   v
+Roteador
+   |
+   +------> Rede 10.0.0.0/24
+   |
+   +------> Rede 172.16.0.0/16
+   |
+   +------> Internet
 ```
 
-Esses endereços são utilizados para comunicação **dentro do segmento de rede local** e não são normalmente roteados pela Internet.
+O PC quer acessar o ```10.0.0.50```, mas percebe que não está na mesma rede. Para isso, ele envia o pacote ao Gateway para que chegue à rede, mas depois o roteador precisa saber por onde encaminhar o pacote para que ele chegue ao destino. É aí que entra o **roteamento**.
 
 ---
 
-### `0.0.0.0` — Endereço especial
+## 2. Tabela de Roteamento
 
-O significado de `0.0.0.0` depende do contexto em que aparece.
-
-Pode representar, por exemplo:
+Para decidir aonde enviar o pacote, o roteador tem uma **Tabela de Roteamento**:
 
 ```text
-"Este host / qualquer endereço"
+Destino              Próximo caminho
+192.168.1.0/24       rede local
+10.0.0.0/24          interface X
+172.16.0.0/16        interface Y
+0.0.0.0/0            saída padrão
 ```
 
-ou:
+Quando chega um pacote destinado a ```10.0.0.50```, o roteador procura na tabela para ver se existe uma rota para ele.
+
+## 3. E se não houver destino?
+
+Ele é enviado à rota padrão: ```0.0.0.0```. Muito comum para representar a saída para a internet.
+
+Uma observação: **Roteamento não significa que um roteador sabe o caminho inteiro**.
+
+Em uma rede maior, existem vários roteadores, e cada um toma sua decisão sobre qual será o próximo caminho.
+
+## Roteamento para SOC N1
+
+O que importa é conseguir entender uma comunicação como:
 
 ```text
-"Todas as interfaces"
+src_ip = 192.168.1.50
+dest_ip = 10.20.30.40
 ```
 
-Também aparece na representação de uma **rota padrão**:
+e raciocinar:
 
 ```text
-0.0.0.0/0
+192.168.1.50 pertence à rede 192.168.1.0/24.
+10.20.30.40 pertence a outra rede.
+O host precisa utilizar seu gateway.
+O tráfego será encaminhado através de roteamento.
+Eventualmente, outros roteadores podem participar do caminho.
 ```
-
-Nesse caso, significa essencialmente:
-
-> "Qualquer destino que não tenha uma rota mais específica."
-
-## IPv4 para SOC N1
-
-Imagine encontrar:
-
-```text
-src_ip= 10.10.20.15
-dest_ip= 45.33.20.10
-```
-
-Podemos interpretar:
-
-```text
-10.10.20.15
-    ↓
-IPv4 privado
-    ↓
-provavelmente dispositivo-recurso externo
-    ↓
-45.33.20.10
-    ↓
-não pertence às faixas privadas
-    ↓
-endereço externo
-```
-
-Agora imagine encontrar:
-
-```text
-src_ip= 192.168.1.10
-dest_ip= 192.168.1.100
-```
-
-Ambos são privados.
