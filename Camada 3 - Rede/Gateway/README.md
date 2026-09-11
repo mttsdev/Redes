@@ -1,212 +1,32 @@
-# IPv4
+# Gateway
 
-O **IPv4 (Internet Protocol version 4)** é uma versão do protocolo IP que utiliza **32 bits** para representar um endereço.
+## 1. O que é?
 
-Um endereço IPv4 normalmente é escrito no formato:
-
-```text
-192.168.1.10
-```
-
-Esses **32 bits** são divididos em **4 octetos**, e cada octeto possui **8 bits**:
-
-```text
-192      .      168      .      1      .      10
-8 bits          8 bits         8 bits        8 bits
-```
-
-Como cada octeto possui 8 bits, seu valor pode variar de **0 a 255**.
-
-Portanto:
-
-```text
-Menor endereço: 0.0.0.0
-Maior endereço: 255.255.255.255
-```
-
-Por isso, um endereço como:
-
-```text
-192.168.1.300
-```
-
-é **inválido**, pois `300` ultrapassa o limite de `255` de um octeto.
-
----
-
-## Rede e Hosts
-
-O IPv4 não serve apenas para identificar um dispositivo.
-
-Um endereço IPv4 possui uma parte que representa a **rede** e outra que representa os **hosts** dentro dessa rede.
-
-Por exemplo:
-
-```text
-192.168.1.10/24
-```
-
-O `/24` indica que **24 bits pertencem à rede**, enquanto os **8 bits restantes pertencem aos hosts**.
-
-```text
-192.168.1. | 10
-   REDE    | HOST
-  24 bits  | 8 bits
-```
-
-Assim, dispositivos como:
-
-```text
-192.168.1.10
-192.168.1.20
-192.168.1.30
-```
-
-podem pertencer à mesma rede:
-
-```text
-192.168.1.0/24
-```
-
-Enquanto:
-
-```text
-192.168.2.0/24
-```
-
-representa outra rede.
-
-
-Neste caso, **24 bits são destinados à rede** (`192.168.1.`),
-e os **8 bits restantes são destinados aos hosts**.
-
-### Exemplo
-
-| Endereço IP | Rede | Host |
-|---|---|---|
-| `192.168.1.10` | `192.168.1.` | `10` |
-| `192.168.1.20` | `192.168.1.` | `20` |
-| `192.168.1.30` | `192.168.1.` | `30` |
-
-Todos eles podem estar na **mesma rede**:
-
-> `192.168.1.0/24`
-
-Enquanto:
-
-> `192.168.2.0/24`
-
-representa **outra rede**, pois o endereço da rede mudou de `192.168.1.` para `192.168.2.`.
-
-## IP trabalha sozinho?
-
-Não. Em uma comunicação de rede, o IP trabalha em conjunto com **diversos protocolos**, cada um desempenhando uma função diferente.
-
-Alguns exemplos:
-
-```text
-HTTP/HTTPS → comunicação de aplicações
-TCP       → transporte e controle da comunicação
-IP        → endereçamento e encaminhamento dos pacotes
-```
-
-O **IPv4** é utilizado principalmente para realizar o **endereçamento lógico dos dispositivos** e o **encaminhamento dos pacotes entre redes**.
-
----
-
-## IPv4 Especiais
-
-Existem alguns endereços e faixas de IPv4 que possuem **funções específicas**.
-
-### `127.0.0.1` — Loopback
-
-É o endereço de **loopback**, utilizado para que um dispositivo se comunique consigo mesmo.
-
-```text
-127.0.0.1
-   ↓
-"Este próprio computador"
-```
-
-É muito utilizado para testes locais de rede e de serviços.
-
-> Exemplo: acessar `127.0.0.1` significa tentar acessar um serviço hospedado no próprio computador.
-
----
-
-### `169.254.x.x` — Link-local
-
-É uma faixa de endereços **link-local**.
-
-Ela pode ser atribuída automaticamente a um dispositivo quando ele **não consegue obter um endereço IPv4 por DHCP**, em determinadas situações.
+Se um computador precisa fazer uma comunicação com outro computador, mas ambos estão em redes distintas, para isso o computador precisa enviar o pacote ao gateway, que geralmente é um roteador ou uma interface de roteador.
 
 Exemplo:
 
 ```text
-169.254.10.25
-169.254.100.50
+Na mesma rede:
+PC A ────> PC B
+
+Em outra rede:
+PC A ──> Gateway ──> Outra rede ──> PC B
 ```
 
-Esses endereços são utilizados para comunicação **dentro do segmento de rede local** e não são normalmente roteados pela Internet.
+## Gateway Padrão
 
----
+**Gateway padrão** é o endereço para qual o dispositivo envia tráfego quando o destino não está em uma rede que ele sabe que não consegue alcançar diretamente.
 
-### `0.0.0.0` — Endereço especial
-
-O significado de `0.0.0.0` depende do contexto em que aparece.
-
-Pode representar, por exemplo:
+Por exemplo:
 
 ```text
-"Este host / qualquer endereço"
+IP:              192.168.1.10
+Máscara:         255.255.255.0
+Gateway padrão:  192.168.1.1
 ```
+```192.168.1.10``` → endereço do computador
+```255.255.255.0``` → determina a rede
+```192.168.1.1``` → porta de saída para outras redes
 
-ou:
-
-```text
-"Todas as interfaces"
-```
-
-Também aparece na representação de uma **rota padrão**:
-
-```text
-0.0.0.0/0
-```
-
-Nesse caso, significa essencialmente:
-
-> "Qualquer destino que não tenha uma rota mais específica."
-
-## IPv4 para SOC N1
-
-Imagine encontrar:
-
-```text
-src_ip= 10.10.20.15
-dest_ip= 45.33.20.10
-```
-
-Podemos interpretar:
-
-```text
-10.10.20.15
-    ↓
-IPv4 privado
-    ↓
-provavelmente dispositivo-recurso externo
-    ↓
-45.33.20.10
-    ↓
-não pertence às faixas privadas
-    ↓
-endereço externo
-```
-
-Agora imagine encontrar:
-
-```text
-src_ip= 192.168.1.10
-dest_ip= 192.168.1.100
-```
-
-Ambos são privados.
+Em SOC N1, ele ajuda a responder perguntas como "Como esse tráfego saiu da rede 192.168.1.0/24?", sendo o Gateway parte da resposta
