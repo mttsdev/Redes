@@ -1,93 +1,119 @@
-# IPv6
+# NAT (Network Address Translation)
 
-O **IPv6 (Internet Protocol version 6)** que veio para resolver um problema de limitação do IPv4 pois, como o mesmo tinha 32 bits, ele tinha "apenas" 4,3 bilhões de endereços, sendo insuficiente. Para isso, o IPv6 tem 128 bits, resolvendo o problema dos endereços.
+O **NAT** é o mecanismo que permite que endereços IP sejam **traduzidos de um endereço para outro**, principalmente entre redes privadas e a Internet.
 
-## 1. IPv4 x IPv6
+Ele é muito importante para entender como um computador com um IP privado consegue se comunicar com um servidor na Internet.
 
-Enquanto o IPv4 pode aparecer assim:
+---
+
+## 1. O que o NAT resolve na prática
+
+Imaginemos uma rede interna:
 
 ```text
+PC A
 192.168.1.10
+      |
+      v
+Gateway/NAT
+192.168.1.1
+      |
+      v
+internet
 ```
 
-O IPv6 pode aparecer assim:
+O computador possui um IP privado: **```192.168.1.10```**. Este endereço não é utilizado como endereço público na Internet.
+Então, quando o computador acessa um servidor externo:
+```text
+PC
+192.168.1.10
+    |
+    v
+   NAT
+    |
+    v
+Internet
+```
+
+O NAT pode substituir o IP de origem privado por um público.
+
+De forma mais simples:
 
 ```text
-2001:db8:85a3:0000:0000:8a2e:0370:7334
+Antes do NAT:
+192.168.1.10 → 8.8.8.8
+
+Depois do NAT:
+200.10.20.30 → 8.8.8.8
 ```
 
-Diferentemente do IPv4, o IPv6 conta com hexadecimal e utiliza dois pontos e, em vez de 8 bits e 4 octetos, ele tem 16 bits e 8 grupos chamados de **hextetos**.
+Onde:
+* ```192.168.1.10```: IP Privado
+* ```200.10.20.30```: IP público utilizado na Internet
 
-Aqui vai um exemplo geral da diferença entre os dois:
+Assim, para o servidor externo, a comunicação aparenta vir de ```200.10.20.30```, e não diretamente de ```192.168.1.10```.
+
+## 2. Como a resposta volta?
+
+O NAT mantém informações para saber qual conexão pertence a qual máquina interna.
+
+Imagine dois computadores: O ```192.168.1.10``` e o ```192.168.1.20```. Ambos acessam a Internet através do mesmo IP público: ```200.10.20.30```. Mas o NAT mantém o controle das conexões para conseguir diferenciar os fluxos.
+
+De forma simplificada:
 
 ```text
-IPv4 → 32 bits → 4 octetos → decimal → 192.168.1.10 → usa broadcast
-IPv6 → 128 bits → 16 hextetos → hexadecimal → 2001:db8::1 → não usa broadcast, ele usa multicast
+192.168.1.10:50001 → 200.10.20.30:40001
+192.168.1.20:50002 → 200.10.20.30:40002
 ```
 
-## Abreviação do IPv6
+assim, o NAT sabe para qual máquina interna encaminhá-las.
+Isso é muito associado ao PAT (Port Address Translation), também chamado de NAT overload, em que vários dispositivos compartilham um único IP público usando diferentes portas.
 
-É muito comum não encontrar o endereço completo, pois ele pode ser abreviado:
+## 3. NAT ≠ Gateway
 
-Por exemplo, ele sai disso:
+Eles frequentemente aparecem juntos, mas são conceitos diferentes.
 
 ```text
-2001:0db8:0000:0000:0000:0000:0000:0001
+PC A
+192.168.1.10
+      |
+      v
+Gateway/NAT
+192.168.1.1
+      |
+      v
+Internet
 ```
 
-Para isso:
+**Gateway:** É o ponto de saída da rede local
+**NAT**: Traduz os endereços durante a comunicação
+
+Um mesmo equipamento pode exercer as duas funções, como acontece frequentemente em roteadores domésticos.
+
+## 4. NAT no SOC N1
+
+Imaginemos a situação:
 
 ```text
-2001:db8::1
+src_ip = 200.10.20.30
+dest_ip = 185.50.60.70
 ```
 
-Mas a abreviação segue regras específicas:
-
-* Os zeros à esquerda podem ser removidos (```0db8 -> db8```);
-* Sequência de zeros podem ser substituídos por ```::```.
-
-## IPv6 não possui broadcast
-
-Em vez do broadcast, o IPv6 usa usa multicast para se comuniciar com vários dispositivos.
-
-# Endereços IPv6 especiais
-
-Assim como o IPv4, o IPv6 também tem seus endereços especiais:
-
-### **127.0.0.1( IPv6: ```::1``` )**
-
-Significa loopback, ou seja, a própria máquina.
-
----
-
-### **fe80::/10**
-
-Significa **link-local**, são utilizados para comunicação dentro do próprio segmento de rede e são muito comuns no IPv6.
-
----
-
-### **fc00::/7**
-
-Usados para endereços **Unique Local Address (ULA)**, que são usados em redes privadas/locais
-
-## IPv4 e IPv6 podem coexistir
-
-Podemos usar as duas versões de IP simultaneamente, isso é chamado de **dual stack**. Em SOC, pode-se encontrar a mesma máquina utilizando IPv4 em uma conexão e IPv6 em outra.
-
-## IPv6 em SOC
-
-Se um alerta aparecer assim:
+Mas ```200.10.20.30``` pode ser o IP público utilizado por vários computadores internos. Então o SOC pode precisar consultar os registros de NAT para descobrir:
 
 ```text
-src_ip=192.168.1.10
-dest_ip=8.8.8.8
+IP público
+    ↓
+porta
+    ↓
+horário
+    ↓
+IP privado
+    ↓
+máquina interna
+    ↓
+usuário
 ```
 
-É IPv4. Mas se aparecer assim:
-
-```text
-src_ip=2001:db8:1234::50
-dest_ip=2001:db8:5678::80
-```
-
-É IPv6
+Por isso, IP público nem sempre identifica exatamente qual máquina interna originou uma conexão.
+Além disso, O NAT pode dificultar conexões externas diretamente direcionadas a hosts privados, especialmente em redes domésticas, mas quem efetivamente controla o que pode ou não passar normalmente é o **firewall**.
