@@ -2,7 +2,7 @@
 
 ## 1. Comunicação Interna
 
-É quando dois dispositivos se comunicam dentro de uma rede ou dentro da infraestrutura interna da organizaçõa.
+É quando dois dispositivos se comunicam dentro de uma rede ou dentro da infraestrutura interna da organização.
 
 Por exemplo: 
 ```text
@@ -84,4 +84,22 @@ Sendo externa → interna. Esse último caso pode ser interessante para investig
 
 Imagine um computador interno fazendo comunicação via HTTPS para um IP externo, isso pode ser perfeitamente legítimo. Mas agora um IP fazer milhares de conexões a vários IPs externos seria necessário uma investigação aprofundada.
 
-## 6. 
+## 6. Detalhes sobre externo e interno
+
+Externo não significa automaticamente malicioso, pois um PC poderia fazer uma comunicação do tipo:
+PC interno → Microsoft
+PC interno → Google
+
+Da mesma forma que o interno não significa automaticamente seguro.
+
+Imagine essa situação:
+```text
+PC comprometido
+192.168.10.25
+      ↓
+      ↓
+Servidor interno
+192.168.20.50
+```
+
+Isso é uma comunicação interna, mas poderia representar movimentação lateral.
