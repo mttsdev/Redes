@@ -1,105 +1,154 @@
-# Comunicação interna vs. externa
+# Portas e serviços
 
-## 1. Comunicação Interna
+## 1. O que é uma porta?
 
-É quando dois dispositivos se comunicam dentro de uma rede ou dentro da infraestrutura interna da organização.
+Na Camada 3, o IP identifica o host.
+Na Camada 4, a porta ajuda qual serviço/processo está recebendo ou originando a comunicação.
 
-Por exemplo: 
+Por exemplo:
 ```text
-PC
-192.168.1.10
-    |
-    v
-Servidor
-192.168.1.50
+192.168.1.10:22
+```
+Onde:
+* ```192.168.1.10```: Computador/servidor
+* ```22```: porta
+* ```TCP```: Protocolo de transporte
+* ```22```: Normalmente está associada aso SSH
+
+Então, ```192.168.1.50 → 192.168.1.10:22``` pode ser interpretado como: O computador ```192.168.1.50``` está tentando estabelecer uma comunicação com o serviço SSH do ```192.168.1.10```.
+
+## 2. Porta não é exatamente "o serviço"
+
+A porta é um número usado na comunicação. Existe uma associação convencional entre determinadas portas e determinados serviços.
+
+Exemplos:
+<table>
+    <th>Porta</th>
+    <th>Protocolo</th>
+    <th>Serviço normalmente associado</th>
+    <tr>
+        <td>20/21</td>
+        <td>TCP</td>
+        <td>FTP</td>
+    </tr>
+    <tr>
+        <td>22</td>
+        <td>TCP</td>
+        <td>SSH</td>
+    </tr>
+    <tr>
+        <td>23</td>
+        <td>TCP</td>
+        <td>Telnet</td>
+    </tr>
+    <tr>
+        <td>25</td>
+        <td>TCP</td>
+        <td>SMTP</td>
+    </tr>
+    <tr>
+        <td>53</td>
+        <td>TCP/UDP</td>
+        <td>DNS</td>
+    </tr>
+    <tr>
+        <td>80</td>
+        <td>TCP</td>
+        <td>HTTP</td>
+    </tr>
+    <tr>
+        <td>110</td>
+        <td>TCP</td>
+        <td>POP3</td>
+    </tr>
+    <tr>
+        <td>143</td>
+        <td>TCP</td>
+        <td>IMAP</td>
+    </tr>
+    <tr>
+        <td>443</td>
+        <td>TCP</td>
+        <td>HTTPS</td>
+    </tr>
+    <tr>
+        <td>445</td>
+        <td>TCP</td>
+        <td>SMB</td>
+    </tr>
+    <tr>
+        <td>3389</td>
+        <td>TCP</td>
+        <td>RDP</td>
+    </tr>
+</table>
+
+O "normalmente associado" é importante porque um serviço pode ser configurado para utilizar outra porta. Por exemplo, SSH normalmente usa 22, mas um administrador pode configurá-lo para usar 2222. Ou seja, porta 22 ≠ garantia de que é SSH, é apenas um forte indicativo.
+
+## 3. Porta de origem e destino
+
+Imagine:
+
+```text
+192.168.1.50:51543 → 192.168.1.10:443
 ```
 
-Os dois utilizam rede privada e estão na mesma rede ```192.168.1.0/24```.
-
-Outro exemplo:
 ```text
-PC
-192.168.1.10
-   |
-   v
-Gateway
-192.168.1.1
-   |
-   v
-Servidor
-10.10.20.50
+IP origem       Porta origem
+192.168.1.50    51543
+
+IP destino      Porta destino
+192.168.1.10    443
 ```
 
-Aqui também temos uma comunicação interna, mesmo em redes diferentes(nem sempre comunicação interna significa necessariamente "mesma rede").
+A porta 51543 é uma porta de origem temporária, enquanto 443 é a porta do serviço de destino.
 
-Outro exemplo é uma empresa ter várias vlans, onde a vlan 10 acessa o servidor da vlan 20, se tornando uma comunicação interna, mas o tráfego precisa passar por roteamento.
-
-## 2. Comunicação externa
-
-É quando um dispositivo da rede interna se comunicando com algo fora da infraestrutura interna, normalmente a internet.
-
-Por exemplo, se um PC quer se conectar à Internet, o NAT traduz seu endereço para um endereço IP público.
-
-## 3. privado ≠ interno em todos os casos
-
-Endereços IP como ```192.168.x.x```, ```10.x.x.x``` e ```172.16.x.x - 172.31.x.x``` normalmente são endereços privados utilizados internamente. mas a classificação de "interno e externo" depende do contexto da organização. Por exemplo, uma empresa pode possuir uma infraestrutura interna com várias redes:
+Em uma comunicação comum:
 
 ```text
-10.10.0.0/16
-172.16.0.0/16
-192.168.100.0/24
+Cliente                         Servidor
+192.168.1.50                    192.168.1.10
+porta 51543                     porta 443
+     │                              │
+     └──────── TCP ────────────────►
 ```
 
-Todas podem ser internas. Por isso, no SOC, devemos conhecer a infraestrutura ou consultar ferramentas como SIEM, EDR. etc.
+O cliente normalmente utiliza uma porta efêmera para iniciar a conexão.
 
-## 4. Como aparece em alerta
+## 4. Portas e serviços em SOC N1
 
-Imagine o evento:
+Muitas das vezes um IP sozinho não é o suficiente para justificar a investigação. Imagine dois eventos:
 
 ```text
-src_ip = 192.168.10.25
-dest_ip = 192.168.20.50
-port = 445
+192.168.1.50 → 192.168.1.10:443
 ```
-
-Onde provavelmente temos uma comunicação interna → interna. Agora:
 
 ```text
-src_ip = 192.168.10.25
-dest_ip = 185.50.60.70
-port = 443
+192.168.1.50 → 192.168.1.10:3389
 ```
-Provavelmente seria uma comunicação interna → externa
-Também temos o caso inverso:
+
+Os destinos são os mesmos, mas o serviço envolvido é **diferente**. Isso muda completamente o contexto da investigação.
+
+Um SOC N1 pode encontrar algo como:
 
 ```text
-src_ip = 185.50.60.70
-dest_ip = 192.168.10.25
-port = 443
+SRC=192.168.1.50
+DEST=10.10.10.20
+DST_PORT=3389
+PROTOCOL=TCP
 ```
 
-Sendo externa → interna. Esse último caso pode ser interessante para investigação, dependendo do serviço e das regras do firewall.
+A primeira interpretação seria:
 
-## 5. Comunicações no SOC
+O host 192.168.1.50 está tentando se comunicar com a porta 3389 do host 10.10.10.20, normalmente utilizada por RDP.
 
-Imagine um computador interno fazendo comunicação via HTTPS para um IP externo, isso pode ser perfeitamente legítimo. Mas agora um IP fazer milhares de conexões a vários IPs externos seria necessário uma investigação aprofundada.
+A partir daí, investigaríamos o contexto.
 
-## 6. Detalhes sobre externo e interno
+Por exemplo:
 
-Externo não significa automaticamente malicioso, pois um PC poderia fazer uma comunicação do tipo:
-PC interno → Microsoft
-PC interno → Google
-
-Da mesma forma que o interno não significa automaticamente seguro.
-
-Imagine essa situação:
-```text
-PC comprometido
-192.168.10.25
-      ↓
-      ↓
-Servidor interno
-192.168.20.50
-```
-
-Isso é uma comunicação interna, mas poderia representar movimentação lateral.
+Esse computador deveria utilizar RDP?
+O destino é um servidor?
+O usuário normalmente realiza esse tipo de acesso?
+Foram feitas muitas tentativas?
+A conexão foi permitida?
+Houve várias máquinas tentando a mesma porta?
