@@ -324,40 +324,6 @@ O mesmo raciocínio pode ser aplicado a outras portas.
 
 ---
 
-## 9. Resumo para SOC N1
-
-```text
-CAMADA 3
-    │
-    └── IP → identifica o host
-
-CAMADA 4
-    │
-    ├── Protocolo → TCP / UDP
-    │
-    └── Porta → identifica o endpoint de transporte
-                  associado a uma comunicação
-```
-
-Exemplo:
-
-```text
-192.168.1.50:51543
-        │
-        │ TCP
-        ▼
-192.168.1.10:443
-```
-
-```text
-192.168.1.50 → host de origem
-51543        → porta efêmera de origem
-192.168.1.10 → host de destino
-443          → porta de destino
-TCP          → protocolo de transporte
-HTTPS        → serviço normalmente associado
-```
-
 ### Regra importante
 
 ```text
