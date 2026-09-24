@@ -43,3 +43,45 @@ ACK → reconheci o seu SYN
 ```
 
 ## 4. ACK
+
+O cliente responde:
+
+```text
+10.0.0.15:50000 → 10.0.0.20:22
+TCP ACK
+```
+
+Depois disso, a conexão foi estabelecida e começa a comunicação normal entre as aplicações.
+
+## 5. 3 Way Handshake no SOC N1
+
+Se no SIEM aparece:
+
+```text
+10.0.0.15 → 10.0.0.20:22  SYN
+10.0.0.20 → 10.0.0.15:50000 SYN-ACK
+10.0.0.15 → 10.0.0.20:22  ACK
+```
+
+Significa que o Three Way Handshake foi concluído.
+
+agora:
+
+```
+10.0.0.15 → 10.0.0.20:22  SYN
+```
+
+Se tiver apenas isso, significa que houve uma tentativa de comunicação, mas não sabemos se foi estabelecida.
+
+E diversos SYN:
+
+```text
+SYN
+SYN
+SYN
+SYN
+SYN
+```
+
+Sem SYN-ACK, pode ser por vários motivos: firewall, serviço indisponível, problema de rede ou comportamento suspeito. O SOC precisa investigar o contexto antes de classificar.
+
