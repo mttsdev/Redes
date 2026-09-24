@@ -24,4 +24,7 @@ Cliente → Servidor
 
 ACK significa acknowledgment. Ele indica que determinado segmento foi recebido e reconhecido.
 
-No handshake: SYN → SYN-ACK 
+No handshake: SYN → SYN-ACK → ACK
+
+Aqui ele confirma o recebimento do SYN-ACK.
+Ele talbém é utilizado durante a comunicação normal do TCP para confirmar o recebimento d dados
